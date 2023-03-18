@@ -1,7 +1,11 @@
+import 'dart:convert';
+
+import 'package:authdemo/services/authservice.dart';
 import 'package:authdemo/signup.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:http/http.dart';
 import 'dashboard.dart';
 import 'firebase_options.dart';
 
@@ -18,24 +22,57 @@ class _LoginPageState extends State<LoginPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool issigned=false;
   logIn() async {
-    if(_formKey.currentState!.validate()){
-      try {
-        UserCredential user = await FirebaseAuth.instance
-            .signInWithEmailAndPassword(email: email, password: password);
-        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
-            DashBoard()), (Route<dynamic> route) => false);
+    print("in login");
+    // if(_formKey.currentState!.validate()){
+    //   try {
+    //     UserCredential user = await FirebaseAuth.instance
+    //         .signInWithEmailAndPassword(email: email, password: password);
+    //     Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
+    //         DashBoard()), (Route<dynamic> route) => false);
+    //
+    //
+    //   }on FirebaseAuthException catch (e) {
+    //     showError(e.message.toString());
+    //     print(e.code);
+    //     if (e.code == 'user-not-found') {
+    //       print('No user found for that email.');
+    //     } else if (e.code == 'wrong-password') {
+    //       print('Wrong password provided for that user.');
+    //     }
+    //   }
+    // }
 
-
-      }on FirebaseAuthException catch (e) {
-        showError(e.message.toString());
-        print(e.code);
-        if (e.code == 'user-not-found') {
-          print('No user found for that email.');
-        } else if (e.code == 'wrong-password') {
-          print('Wrong password provided for that user.');
+    if (_formKey.currentState!.validate()) {
+      Authenticaion auth=new Authenticaion();
+      Future<Response> status=auth.loginUser(email!, password!);
+      status.then((value) => {
+        if(value.statusCode!=201){
+          showDialog(context: context, builder: (BuildContext context){
+            return AlertDialog(
+              title: Text("Oops!"),
+              content: Text("error"),
+              actions: <Widget>[
+                ElevatedButton(onPressed: (){
+                  Navigator.of(context).pop();
+                }, child: Text("Ok"))
+              ],
+            );
+          })
         }
-      }
+
+        else{
+
+          Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
+          DashBoard()), (Route<dynamic> route) => false)
+
+        }
+
+      });
     }
+    else{
+      print("Form error");
+    }
+
 
   }
   showError(String errorMsg) {
